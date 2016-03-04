@@ -1,4 +1,4 @@
-function scaleCanvasForHiDPI(context) {
+function scaleCanvasForHiDPI(context) {             // jshint ignore:line
   var canvas = context.canvas;
   // Get the ratio
   var devicePixelRatio = window.devicePixelRatio || 1;
