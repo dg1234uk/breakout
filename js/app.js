@@ -1,8 +1,13 @@
 /*global scaleCanvasForHiDPI*/
 var breakout = (function() {
-  var canvas, ctx, rAF, entities, paddle, ball, bricks, leftArrowKeyPressed, rightArrowKeyPressed, gameLevel;
+  var canvas, ctx, rAF, paddle, ball, bricks, leftArrowKeyPressed, rightArrowKeyPressed, gameLevel, gameState, gameScore, gameLives, gameScoreElement, gameLivesElement, gameOverLayer, gameWinLayer;
 
   var init = function() {
+    // Get references to HTML Elements
+    gameScoreElement = document.getElementById('gameScoreText');
+    gameLivesElement = document.getElementById('gameLivesText');
+    gameOverLayer = document.getElementById('gameOverLayer');
+    gameWinLayer = document.getElementById('gameWinLayer');
     // Set up Canvas
     canvas = document.getElementById('gameCanvas');
     ctx = canvas.getContext('2d');
@@ -17,22 +22,24 @@ var breakout = (function() {
     // Set up the level
     gameLevel = 0;
     bricks = [];
-    entities = [];
     var levels = new Levels();
     levels.setupLevel(gameLevel);
     // Setup entities
-
     paddle = new Paddle();
     ball = new Ball();
-    // Arrays for bigger games?
-    // entities.push(paddle);
-    // entities.push(bricks);
 
+    gameScore = 0;
+    gameLives = 3;
+    gameScoreElement.textContent = gameScore;
+    gameLivesElement.textContent = gameLives;
+
+    gameState = 'init';
     start();
-
   };
 
   var keydownHandler = function(e) {
+    // keyCode 37 = Left Arrow Key
+    // keyCode 39 = Right Arrow Key
     if (e.keyCode === 37) {
       leftArrowKeyPressed = true;
     } else if (e.keyCode === 39) {
@@ -41,6 +48,8 @@ var breakout = (function() {
   };
 
   var keyupHandler = function(e) {
+    // keyCode 37 = Left Arrow Key
+    // keyCode 39 = Right Arrow Key
     if (e.keyCode === 37) {
       leftArrowKeyPressed = false;
     } else if (e.keyCode === 39) {
@@ -49,20 +58,73 @@ var breakout = (function() {
   };
 
   var start = function() {
+    gameState = 'play';
     rAF = requestAnimationFrame(gameLoop);
   };
 
   var gameLoop = function(timeStep) {
-    // debugger
     rAF = requestAnimationFrame(gameLoop);
-    // Time handling
+    //TODO: Time handling
     update();
     render();
   };
 
   var update = function() {
-    paddle.update();
-    ball.update();
+    //TODO: Switch instead of if?
+    if (gameState === 'play') {
+      paddle.update();
+      ball.update();
+      checkForBallBrickCollision();
+      checkForBallPaddleCollision();
+      checkForWinLose();
+    } else if (gameState === 'won') {
+      cancelAnimationFrame(rAF);
+      canvas.style.display = 'none';
+      gameWinLayer.style.display = 'block';
+    } else if (gameState === 'gameOver') {
+      cancelAnimationFrame(rAF);
+      canvas.style.display = 'none';
+      gameOverLayer.style.display = 'block';
+    } else {
+      cancelAnimationFrame(rAF);
+    }
+  };
+
+  var checkForBallBrickCollision = function() {
+    for (var i = 0; i < bricks.length; i++) {
+      var collision = AABBIntersection(ball.boundingBox, bricks[i]);
+      if (collision) {
+        bricks.splice(i, 1);
+        gameScore += 25;
+      }
+    }
+  };
+
+  var checkForBallPaddleCollision = function() {
+    if (AABBIntersection(ball.boundingBox, paddle)) {
+      ball.velocityY = -ball.velocityY;
+    }
+  };
+
+  var checkForWinLose = function() {
+    // Check for losing condition (ball dropped)
+    if (ball.y - ball.radius > canvas.scaledHeight) {
+      if (gameLives > 1) {
+        gameLives--;
+        // TODO: turn this into a ballReset method on Ball
+        ball.x = canvas.scaledWidth / 2;
+        ball.y = canvas.scaledHeight - 100;
+        ball.velocityX = 3;
+        ball.velocityY = 3;
+      } else {
+        gameLives = 0;
+        gameState = 'gameOver';
+      }
+    }
+    // Check for winning condiiton (no more bricks)
+    if (bricks.length === 0) {
+      gameState = 'won';
+    }
   };
 
   var render = function() {
@@ -72,6 +134,8 @@ var breakout = (function() {
     for (var i = 0; i < bricks.length; i++) {
       bricks[i].draw();
     }
+    gameScoreElement.textContent = gameScore;
+    gameLivesElement.textContent = gameLives;
   };
 
   var Paddle = function() {
@@ -79,7 +143,7 @@ var breakout = (function() {
     this.height = 20;
     this.x = canvas.scaledWidth / 2 - this.width / 2;
     this.y = canvas.scaledHeight - this.height;
-    this.velocityX = 4;
+    this.velocityX = 5;
     this.fillColor = 'red';
   };
 
@@ -101,16 +165,27 @@ var breakout = (function() {
     drawRect(this.x, this.y, this.width, this.height, this.fillColor);
   };
 
-  var Ball = function () {
+  var Ball = function() {
     this.radius = 10;
     this.x = canvas.scaledWidth / 2;
     this.y = canvas.scaledHeight - 100;
     this.velocityX = 3;
     this.velocityY = 3;
     this.fillColor = 'green';
+
+    Object.defineProperty(this, 'boundingBox', {
+      get: function() {
+        return {
+          x: ball.x - ball.radius,
+          y: ball.y - ball.radius,
+          width: ball.radius * 2,
+          height: ball.radius * 2
+        };
+      },
+    });
   };
 
-  Ball.prototype.update = function () {
+  Ball.prototype.update = function() {
     var prevX = this.x;
     var prevY = this.y;
 
@@ -121,13 +196,13 @@ var breakout = (function() {
       this.x = prevX;
       this.velocityX = -this.velocityX;
     }
-    if (this.y + this.radius > canvas.scaledHeight || this.y - this.radius < 0) {
+    if (this.y - ball.radius < 0) {
       this.y = prevY;
       this.velocityY = -this.velocityY;
     }
   };
 
-  Ball.prototype.draw = function () {
+  Ball.prototype.draw = function() {
     ctx.save();
     ctx.beginPath();
     ctx.fillStyle = this.fillColor;
@@ -168,18 +243,28 @@ var breakout = (function() {
     }];
   };
 
-  Levels.prototype.setupLevel = function (level) {
+  Levels.prototype.setupLevel = function(level) {
     var rows = this.levelData[level].rows;
     var columns = this.levelData[level].columns;
+    // TODO: Make bricks centre themselves on canvas rather than starting x/y
     for (var row = 0; row < rows; row++) {
       for (var col = 0; col < columns; col++) {
         var brick = new Brick();
-        brick.x = this.levelData[level].startingX + (brick.width + this.levelData[level].padding) * col+1;
+        brick.x = this.levelData[level].startingX + (brick.width + this.levelData[level].padding) * col + 1;
         var rowOffset = (brick.height + this.levelData[level].padding) * row;
         brick.y = this.levelData[level].startingY + rowOffset;
         bricks.push(brick);
       }
     }
+  };
+
+  var AABBIntersection = function(rect1, rect2) {
+    // TODO: Check arguments are correct.
+    // FIXME: Ball gets trapped in paddle
+    if (rect1.x < rect2.x + rect2.width && rect1.x + rect1.width > rect2.x && rect1.y < rect2.y + rect2.height && rect1.height + rect1.y > rect2.y) {
+      return true;
+    }
+    return false;
   };
 
   return {
