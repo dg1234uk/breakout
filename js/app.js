@@ -1,6 +1,6 @@
 /*global scaleCanvasForHiDPI*/
 var breakout = (function() {
-  var canvas, ctx, rAF, paddle, ball, bricks, leftArrowKeyPressed, rightArrowKeyPressed, gameLevel, gameState, gameScore, gameLives, gameScoreElement, gameLivesElement, gameOverLayer, gameWinLayer;
+  var canvas, ctx, rAF, paddle, ball, bricks, leftArrowKeyPressed, rightArrowKeyPressed, gameLevel, gameState, gameScore, gameLives, gameScoreElement, gameLivesElement, gameOverLayer, gameWinLayer, ballPaddleBeep, ballBrickBeep, lastUpdateTime, fps, gameFPSText;
 
   var init = function() {
     // Get references to HTML Elements
@@ -8,6 +8,8 @@ var breakout = (function() {
     gameLivesElement = document.getElementById('gameLivesText');
     gameOverLayer = document.getElementById('gameOverLayer');
     gameWinLayer = document.getElementById('gameWinLayer');
+    gameFPSText = document.getElementById('gameFpsText');
+
     // Set up Canvas
     canvas = document.getElementById('gameCanvas');
     ctx = canvas.getContext('2d');
@@ -18,6 +20,14 @@ var breakout = (function() {
     rightArrowKeyPressed = false;
     document.addEventListener('keydown', keydownHandler);
     document.addEventListener('keyup', keyupHandler);
+
+    // Load Audio
+    // FIXME: Audio Lag
+    ballPaddleBeep = new Audio();
+    // ballPaddleBeep.src = 'resources/bleep.wav';
+    ballBrickBeep = new Audio();
+    // ballBrickBeep.src = 'resources/bleep.mp3';
+
 
     // Set up the level
     gameLevel = 0;
@@ -62,11 +72,24 @@ var breakout = (function() {
     rAF = requestAnimationFrame(gameLoop);
   };
 
-  var gameLoop = function(timeStep) {
+  var gameLoop = function(currentTime) {
     rAF = requestAnimationFrame(gameLoop);
     //TODO: Time handling
     update();
     render();
+    displayFPS(currentTime);
+  };
+
+  var displayFPS = function(currentTime) {
+    var timeStep;
+    if (!lastUpdateTime) {
+      lastUpdateTime = currentTime;
+      fps = 0;
+    }
+    timeStep = (currentTime - lastUpdateTime) / 1000;
+    lastUpdateTime = currentTime;
+    fps = 1 / timeStep;
+    gameFPSText.textContent = Math.round(fps);
   };
 
   var update = function() {
@@ -94,6 +117,7 @@ var breakout = (function() {
     for (var i = 0; i < bricks.length; i++) {
       var collision = AABBIntersection(ball.boundingBox, bricks[i]);
       if (collision) {
+        // ballBrickBeep.play();
         bricks.splice(i, 1);
         gameScore += 25;
       }
@@ -103,6 +127,7 @@ var breakout = (function() {
   var checkForBallPaddleCollision = function() {
     if (AABBIntersection(ball.boundingBox, paddle)) {
       // Always return a +ve value to hack fix the 'sticky paddle' bug.
+      // ballPaddleBeep.play();
       ball.velocityY = -1 * Math.abs(ball.velocityY);
     }
   };
@@ -236,32 +261,67 @@ var breakout = (function() {
 
   var Levels = function() {
     this.levelData = [{
-      startingX: 15,
-      startingY: 10,
-      rows: 3,
-      columns: 8,
-      padding: 10
-    }];
+      brickWidth: 50,
+      brickHeight: 20,
+      brickPadding: 10,
+      data: [
+        [1, 1, 1, 1, 1, 1, 1, 1],
+        [2, 2, 2, 2, 2, 2, 2, 2],
+        [3, 3, 3, 3, 3, 3, 3, 3]
+      ]
+    },
+    {
+      brickWidth: 50,
+      brickHeight: 20,
+      brickPadding: 10,
+      data: [
+        [1, 1, 1, 1, 1, 1],
+        [2, 2, 0, 0, 2, 2],
+        [3, 3, 0, 0, 3, 3]
+      ]
+    }
+  ];
   };
 
   Levels.prototype.setupLevel = function(level) {
-    var rows = this.levelData[level].rows;
-    var columns = this.levelData[level].columns;
-    // TODO: Make bricks centre themselves on canvas rather than starting x/y
+    var rows = this.levelData[level].data.length;
+    var columns = this.levelData[level].data[0].length;
+    var startingX = (canvas.scaledWidth / 2) - (((columns * this.levelData[level].brickWidth) + this.levelData[level].brickPadding * (columns - 1)) / 2);
+    var startingY = 10;
     for (var row = 0; row < rows; row++) {
       for (var col = 0; col < columns; col++) {
-        var brick = new Brick();
-        brick.x = this.levelData[level].startingX + (brick.width + this.levelData[level].padding) * col + 1;
-        var rowOffset = (brick.height + this.levelData[level].padding) * row;
-        brick.y = this.levelData[level].startingY + rowOffset;
-        bricks.push(brick);
+        if (this.levelData[level].data[row][col] > 0) {
+          var width = this.levelData[level].brickWidth;
+          var height = this.levelData[level].brickHeight;
+          var padding = this.levelData[level].brickPadding;
+          var x = startingX + (width + padding) * col + 1;
+          var y = startingY + (height + padding) * row;
+
+          var brickColor;
+          switch (this.levelData[level].data[row][col]) {
+            case 1:
+              brickColor = 'red';
+              break;
+            case 2:
+              brickColor = 'green';
+              break;
+            case 3:
+              brickColor = 'blue';
+              break;
+            default:
+              brickColor = '#000000';
+
+          }
+
+          var brick = new Brick(x, y, width, height, brickColor);
+          bricks.push(brick);
+        }
       }
     }
   };
 
   var AABBIntersection = function(rect1, rect2) {
     // TODO: Check arguments are correct.
-    // FIXME: Ball gets trapped in paddle
     if (rect1.x < rect2.x + rect2.width && rect1.x + rect1.width > rect2.x && rect1.y < rect2.y + rect2.height && rect1.height + rect1.y > rect2.y) {
       return true;
     }
