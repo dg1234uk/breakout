@@ -102,7 +102,8 @@ var breakout = (function() {
 
   var checkForBallPaddleCollision = function() {
     if (AABBIntersection(ball.boundingBox, paddle)) {
-      ball.velocityY = -ball.velocityY;
+      // Always return a +ve value to hack fix the 'sticky paddle' bug.
+      ball.velocityY = -1 * Math.abs(ball.velocityY);
     }
   };
 
