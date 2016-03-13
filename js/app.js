@@ -1,7 +1,7 @@
 /*global scaleCanvasForHiDPI*/
 var breakout = (function() {
-  var canvas, ctx, rAF, paddle, ball, bricks, leftArrowKeyPressed, rightArrowKeyPressed, gameLevel, gameState, gameScore, gameLives, gameScoreElement, gameLivesElement, gameOverLayer, gameWinLayer, ballPaddleBeep, ballBrickBeep, lastUpdateTime, fps, gameFPSText;
-
+  var canvas, ctx, rAF, paddle, ball, bricks, leftArrowKeyPressed, rightArrowKeyPressed, gameLevel, gameState, gameScore, gameLives, gameScoreElement, gameLivesElement, gameOverLayer, gameWinLayer, ballPaddleBeep, ballBrickBeep, lastFrameTime, fps, gameFPSText, timeSinceLastUpdate, accumulator, timeStep, started;
+  // TODO: Add MDNs game template stuff
   var init = function() {
     // Get references to HTML Elements
     gameScoreElement = document.getElementById('gameScoreText');
@@ -14,6 +14,19 @@ var breakout = (function() {
     canvas = document.getElementById('gameCanvas');
     ctx = canvas.getContext('2d');
     scaleCanvasForHiDPI(ctx);
+
+    // Setup time based animation
+    timeStep = 1000 / 60; // constant dt step of 1 frame every 60 seconds
+    accumulator = 0;
+
+    started = false;
+
+    // Don't run the game when the tab isn't visible
+    window.addEventListener('focus', start);
+    window.addEventListener('blur', stop);
+
+    document.getElementById('pauseBtn').addEventListener('click', stop);
+    document.getElementById('startBtn').addEventListener('click', start);
 
     // Setup input
     leftArrowKeyPressed = false;
@@ -67,36 +80,82 @@ var breakout = (function() {
     }
   };
 
-  var start = function() {
-    gameState = 'play';
-    rAF = requestAnimationFrame(gameLoop);
-  };
 
-  var gameLoop = function(currentTime) {
-    rAF = requestAnimationFrame(gameLoop);
-    //TODO: Time handling
-    update();
+  // Pause and unpause
+  function stop() {
+    gameState = 'paused';
+    started = false;
+    cancelAnimationFrame(rAF);
+  }
+
+  function start() {
+    if (!started) { // don't request multiple frames
+      started = true;
+      // Dummy frame to get our timestamps and initial drawing right.
+      // Track the frame ID so we can cancel it if we stop quickly.
+      rAF = requestAnimationFrame(function(timestamp) {
+        render(); // initial draw
+        gameState = 'play';
+        // reset some time tracking variables
+        lastFrameTime = timestamp;
+        // lastFpsUpdate = timestamp;
+        // framesThisSecond = 0;
+        // actually start the main loop
+        rAF = requestAnimationFrame(main);
+      });
+    }
+  }
+
+  var main = function(currentTime) {
+    // Allows us to throttle the games performance
+    // var maxFPS = 30;
+    // if (currentTime < lastFrameTime + (1000 / maxFPS)) {
+    //     requestAnimationFrame(main);
+    //     return;
+    // }
+
+    rAF = requestAnimationFrame(main);
+    if (!lastFrameTime) {
+      lastFrameTime = currentTime;
+    }
+
+    timeSinceLastUpdate = currentTime - lastFrameTime;
+    lastFrameTime = currentTime;
+    accumulator += timeSinceLastUpdate;
+
+    // Keep the update fixed to 1/60 sec to ensure there aren't collision issues etc
+    // Count steps to stop panic state, can also controlm FPS to stop panic states
+    var numUpdateSteps = 0;
+    while (accumulator >= timeStep) {
+      displayFPS(timeSinceLastUpdate / 1000);
+      update(timeStep / 1000);
+      accumulator -= timeStep;
+      if (++numUpdateSteps >= 240) {
+        panic();
+        break;
+      }
+    }
+
     render();
-    displayFPS(currentTime);
   };
 
-  var displayFPS = function(currentTime) {
-    var timeStep;
-    if (!lastUpdateTime) {
-      lastUpdateTime = currentTime;
+  var panic = function() {
+    accumulator = 0;
+  };
+
+  var displayFPS = function(dt) {
+    if (!fps) {
       fps = 0;
     }
-    timeStep = (currentTime - lastUpdateTime) / 1000;
-    lastUpdateTime = currentTime;
-    fps = 1 / timeStep;
+    fps = 1 / dt;
     gameFPSText.textContent = Math.round(fps);
   };
 
-  var update = function() {
+  var update = function(dt) {
     //TODO: Switch instead of if?
     if (gameState === 'play') {
-      paddle.update();
-      ball.update();
+      paddle.update(dt);
+      ball.update(dt);
       checkForBallBrickCollision();
       checkForBallPaddleCollision();
       checkForWinLose();
@@ -120,6 +179,7 @@ var breakout = (function() {
         // ballBrickBeep.play();
         bricks.splice(i, 1);
         gameScore += 25;
+        ball.velocityY *= -1;
       }
     }
   };
@@ -140,8 +200,6 @@ var breakout = (function() {
         // TODO: turn this into a ballReset method on Ball
         ball.x = canvas.scaledWidth / 2;
         ball.y = canvas.scaledHeight - 100;
-        ball.velocityX = 3;
-        ball.velocityY = 3;
       } else {
         gameLives = 0;
         gameState = 'gameOver';
@@ -169,17 +227,17 @@ var breakout = (function() {
     this.height = 20;
     this.x = canvas.scaledWidth / 2 - this.width / 2;
     this.y = canvas.scaledHeight - this.height;
-    this.velocityX = 5;
+    this.velocityX = 300;
     this.fillColor = 'red';
   };
 
-  Paddle.prototype.update = function() {
+  Paddle.prototype.update = function(dt) {
     var prevX = this.x;
     // Handle Input & Move
     if (leftArrowKeyPressed) {
-      this.x -= this.velocityX;
+      this.x -= this.velocityX * dt;
     } else if (rightArrowKeyPressed) {
-      this.x += this.velocityX;
+      this.x += this.velocityX * dt;
     }
     // Clamp to canvas
     if (this.x + this.width > canvas.scaledWidth || this.x < 0) {
@@ -195,8 +253,8 @@ var breakout = (function() {
     this.radius = 10;
     this.x = canvas.scaledWidth / 2;
     this.y = canvas.scaledHeight - 100;
-    this.velocityX = 3;
-    this.velocityY = 3;
+    this.velocityX = 200;
+    this.velocityY = 200;
     this.fillColor = 'green';
 
     Object.defineProperty(this, 'boundingBox', {
@@ -211,12 +269,12 @@ var breakout = (function() {
     });
   };
 
-  Ball.prototype.update = function() {
+  Ball.prototype.update = function(dt) {
     var prevX = this.x;
     var prevY = this.y;
 
-    this.x += this.velocityX;
-    this.y += this.velocityY;
+    this.x += this.velocityX * dt;
+    this.y += this.velocityY * dt;
 
     if (this.x + this.radius / 2 > canvas.scaledWidth || this.x - this.radius / 2 < 0) {
       this.x = prevX;
@@ -260,6 +318,8 @@ var breakout = (function() {
   };
 
   var Levels = function() {
+    // TODO: Define colors as properties on here.
+    // TODO: Use the Rectangle tool to create a 38x18px rectangle and apply the next gradient: #CC0000, #8E0000, #FF5656.
     this.levelData = [{
       brickWidth: 50,
       brickHeight: 20,
@@ -269,8 +329,7 @@ var breakout = (function() {
         [2, 2, 2, 2, 2, 2, 2, 2],
         [3, 3, 3, 3, 3, 3, 3, 3]
       ]
-    },
-    {
+    }, {
       brickWidth: 50,
       brickHeight: 20,
       brickPadding: 10,
@@ -279,8 +338,7 @@ var breakout = (function() {
         [2, 2, 0, 0, 2, 2],
         [3, 3, 0, 0, 3, 3]
       ]
-    }
-  ];
+    }];
   };
 
   Levels.prototype.setupLevel = function(level) {
