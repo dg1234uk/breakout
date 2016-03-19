@@ -1,7 +1,5 @@
 /*global scaleCanvasForHiDPI*/
-// TODO: Ball paddle collision steerinh
 // TODO: Add audio
-// TODO: Add random ball starting movement
 // TODO: Add options, ball start on paddle, speed, FPS, and other dev options
 // TODO: Improve Ball collision, so that if it hits a side of a rectangle it doesnt bounce up.
 // TODO: Add start ball on paddle with a click or button press, selected via options
@@ -194,8 +192,8 @@ var breakout = (function() {
    */
   var throttleFPS = function(maxFPS, currentTime) {
     if (currentTime < lastFrameTime + (1000 / maxFPS)) {
-        requestAnimationFrame(main);
-        return true;
+      requestAnimationFrame(main);
+      return true;
     }
     return false;
   };
@@ -239,7 +237,10 @@ var breakout = (function() {
         gameLives--;
         // TODO: turn this into a ballReset method on Ball
         ball.x = canvas.scaledWidth / 2;
-        ball.y = canvas.scaledHeight - 100;
+        ball.y = canvas.scaledHeight - 200;
+        var plusOrMinus = Math.random() < 0.5 ? -1 : 1;
+        ball.velocityX = plusOrMinus * (2 + Math.random() * 8);
+        ball.velocityY = 200;
       } else {
         gameLives = 0;
         gameState = 'gameOver';
@@ -269,6 +270,26 @@ var breakout = (function() {
       // Always return a +ve value to hack fix the 'sticky paddle' bug.
       // ballPaddleBeep.play();
       ball.velocityY = -1 * Math.abs(ball.velocityY);
+
+      var diff = 0;
+      var paddleCenter = paddle.x + (paddle.width / 2);
+      var ballCenterX = ball.x + (ball.radius / 2);
+
+      // ball.velocityX varies based on where the ball hits the paddle.
+      if (ballCenterX < paddleCenter) {
+        //  Ball is on the left-hand side of the paddle
+        diff = paddleCenter - ballCenterX;
+        ball.velocityX = -1 * (10 * diff);
+      } else if (ballCenterX > paddleCenter) {
+        //  Ball is on the right-hand side of the paddle
+        diff = ballCenterX - paddleCenter;
+        ball.velocityX = 10 * diff;
+      } else {
+        //  Ball is perfectly in the middle
+        //  Add a little random X to stop it bouncing straight up!
+        ball.velocityX = Math.abs(ball.velocityX) + 2 + Math.random() * 8;
+      }
+
     }
   };
 
@@ -287,7 +308,7 @@ var breakout = (function() {
     this.height = 20;
     this.x = canvas.scaledWidth / 2 - this.width / 2;
     this.y = canvas.scaledHeight - this.height;
-    this.velocityX = 300;
+    this.velocityX = 400;
     this.fillColor = 'red';
   };
 
@@ -312,8 +333,9 @@ var breakout = (function() {
   var Ball = function() {
     this.radius = 10;
     this.x = canvas.scaledWidth / 2;
-    this.y = canvas.scaledHeight - 100;
-    this.velocityX = 200;
+    this.y = canvas.scaledHeight - 200;
+    var plusOrMinus = Math.random() < 0.5 ? -1 : 1;
+    this.velocityX = plusOrMinus * (2 + Math.random() * 8);
     this.velocityY = 200;
     this.fillColor = 'green';
 
