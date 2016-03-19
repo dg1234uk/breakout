@@ -5,6 +5,7 @@
 // TODO: Add start ball on paddle with a click or button press, selected via options
 // TODO: Once level complete progress to next level until all levels complete.
 // TODO: Complete JSDoc comments
+// FIXME: If paddle velocity is 400 you can't move paddle to very edge of canvas.
 
 /**
  * breakout - IIFE
@@ -59,7 +60,7 @@ var breakout = (function() {
     //ballBrickBeep = new Audio();
     // ballBrickBeep.src = 'resources/bleep.mp3';
 
-    gameLevel = 2;
+    gameLevel = 0;
     reset();
   };
 
@@ -192,7 +193,7 @@ var breakout = (function() {
    * @param  {DOMHighResTimeStamp} currentTime the currentTime in ms.
    * @return {boolean}             true if update loop should return prior.
    */
-  var throttleFPS = function(maxFPS, currentTime) {
+  var throttleFPS = function(maxFPS, currentTime) {       // jshint ignore:line
     if (currentTime < lastFrameTime + (1000 / maxFPS)) {
       requestAnimationFrame(main);
       return true;
@@ -425,16 +426,9 @@ var breakout = (function() {
           [3, 3, 0, 0, 3, 3]
         ]
       }, {
-        brickWidth: 30,
-        brickHeight: 10,
-        brickPadding: 5,
-        // 6 Colours
-        // 1: green
-        // 2: yellow
-        // 3: orange
-        // 4: red
-        // 5: purple
-        // 6: blue
+        brickWidth: 24,
+        brickHeight: 12,
+        brickPadding: 4,
         data: [
           [0, 0, 0, 0, 0, 1, 0, 0, 0],
           [0, 0, 0, 0, 1, 1, 0, 0, 0],
@@ -474,6 +468,13 @@ var breakout = (function() {
           var y = startingY + (height + padding) * row;
 
           var brickColor;
+          // 6 Colours
+          // 1: green
+          // 2: yellow
+          // 3: orange
+          // 4: red
+          // 5: purple
+          // 6: blue
           switch (this.levelData[level].data[row][col]) {
             case 1:
               brickColor = '#7ECD63';
