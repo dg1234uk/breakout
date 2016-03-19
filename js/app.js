@@ -97,14 +97,16 @@ var breakout = (function() {
 
   // Pause and unpause
   var stop = function() {
-    gameState = 'paused';
-    started = false;
-    cancelAnimationFrame(rAF);
-    gamePauseLayer.style.display = 'block';
+    if (gameState === 'play') {
+      gameState = 'paused';
+      started = false;
+      cancelAnimationFrame(rAF);
+      gamePauseLayer.style.display = 'block';
+    }
   };
 
   var start = function() {
-    if (!started) { // don't request multiple frames
+    if (!started && gameState !== 'won' && gameState !== 'gameOver') { // don't request multiple frames
       started = true;
       gamePauseLayer.style.display = 'none';
       // Dummy frame to get our timestamps and initial drawing right.
@@ -122,6 +124,7 @@ var breakout = (function() {
 
   var reset = function() {
     stop();
+    gameState = 'reset';
     // Set up the level
     bricks = [];
     var levels = new Levels();
@@ -244,11 +247,13 @@ var breakout = (function() {
       } else {
         gameLives = 0;
         gameState = 'gameOver';
+        started = false;
       }
     }
     // Check for winning condiiton (no more bricks)
     if (bricks.length === 0) {
       gameState = 'won';
+      started = false;
     }
   };
 
