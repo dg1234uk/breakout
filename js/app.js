@@ -193,7 +193,7 @@ var breakout = (function() {
    * @param  {DOMHighResTimeStamp} currentTime the currentTime in ms.
    * @return {boolean}             true if update loop should return prior.
    */
-  var throttleFPS = function(maxFPS, currentTime) {       // jshint ignore:line
+  var throttleFPS = function(maxFPS, currentTime) { // jshint ignore:line
     if (currentTime < lastFrameTime + (1000 / maxFPS)) {
       requestAnimationFrame(main);
       return true;
@@ -327,7 +327,15 @@ var breakout = (function() {
     }
     // Clamp to canvas
     if (this.x + this.width > canvas.scaledWidth || this.x < 0) {
-      this.x = prevX;
+      // Ensures that the paddle goes all the way to the end of the canvas.
+      if (this.x + this.width > canvas.scaledWidth) {
+        this.x = canvas.scaledWidth - this.width;
+      } else if (this.x < 0) {
+        this.x = 0;
+      } else {
+        this.x = prevX;
+      }
+
     }
   };
 
