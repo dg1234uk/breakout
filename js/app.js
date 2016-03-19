@@ -1,4 +1,11 @@
 /*global scaleCanvasForHiDPI*/
+// TODO: Ball paddle collision steerinh
+// TODO: Add audio
+// TODO: Add random ball starting movement
+// TODO: Add options, ball start on paddle, speed, FPS, and other dev options
+// TODO: Improve Ball collision, so that if it hits a side of a rectangle it doesnt bounce up.
+// TODO: Add start ball on paddle with a click or button press, selected via options
+
 var breakout = (function() {
   var canvas, ctx, rAF, paddle, ball, bricks, leftArrowKeyPressed, rightArrowKeyPressed, gameLevel, gameState, gameScore, gameLives, gameScoreElement, gameLivesElement, gameOverLayer, gameWinLayer, ballPaddleBeep, ballBrickBeep, lastFrameTime, fps, gameFPSText, timeSinceLastUpdate, accumulator, timeStep, started;
   // TODO: Add MDNs game template stuff
@@ -19,6 +26,7 @@ var breakout = (function() {
     timeStep = 1000 / 60; // constant dt step of 1 frame every 60 seconds
     accumulator = 0;
 
+    gameState = 'init';
     started = false;
 
     // Don't run the game when the tab isn't visible
@@ -27,6 +35,7 @@ var breakout = (function() {
 
     document.getElementById('pauseBtn').addEventListener('click', stop);
     document.getElementById('startBtn').addEventListener('click', start);
+    document.getElementById('resetBtn').addEventListener('click', reset);
 
     // Setup input
     leftArrowKeyPressed = false;
@@ -41,23 +50,8 @@ var breakout = (function() {
     ballBrickBeep = new Audio();
     // ballBrickBeep.src = 'resources/bleep.mp3';
 
-
-    // Set up the level
     gameLevel = 0;
-    bricks = [];
-    var levels = new Levels();
-    levels.setupLevel(gameLevel);
-    // Setup entities
-    paddle = new Paddle();
-    ball = new Ball();
-
-    gameScore = 0;
-    gameLives = 3;
-    gameScoreElement.textContent = gameScore;
-    gameLivesElement.textContent = gameLives;
-
-    gameState = 'init';
-    start();
+    reset();
   };
 
   var keydownHandler = function(e) {
@@ -82,13 +76,13 @@ var breakout = (function() {
 
 
   // Pause and unpause
-  function stop() {
+  var stop = function () {
     gameState = 'paused';
     started = false;
     cancelAnimationFrame(rAF);
-  }
+  };
 
-  function start() {
+  var start = function () {
     if (!started) { // don't request multiple frames
       started = true;
       // Dummy frame to get our timestamps and initial drawing right.
@@ -98,13 +92,33 @@ var breakout = (function() {
         gameState = 'play';
         // reset some time tracking variables
         lastFrameTime = timestamp;
-        // lastFpsUpdate = timestamp;
-        // framesThisSecond = 0;
         // actually start the main loop
         rAF = requestAnimationFrame(main);
       });
     }
-  }
+  };
+
+  var reset = function () {
+    stop();
+    // Set up the level
+    bricks = [];
+    var levels = new Levels();
+    levels.setupLevel(gameLevel);
+    // Setup entities
+    paddle = new Paddle();
+    ball = new Ball();
+
+    gameScore = 0;
+    gameLives = 3;
+    gameScoreElement.textContent = gameScore;
+    gameLivesElement.textContent = gameLives;
+    gameWinLayer.style.display = 'none';
+    gameOverLayer.style.display = 'none';
+    canvas.style.display = 'block';
+
+    start();
+
+  };
 
   var main = function(currentTime) {
     // Allows us to throttle the games performance
