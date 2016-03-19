@@ -4,7 +4,6 @@
 // TODO: Improve Ball collision, so that if it hits a side of a rectangle it doesnt bounce up.
 // TODO: Add start ball on paddle with a click or button press, selected via options
 // TODO: Once level complete progress to next level until all levels complete.
-// TODO: Add MDNs game template stuff.
 // TODO: Complete JSDoc comments
 
 /**
@@ -60,7 +59,7 @@ var breakout = (function() {
     //ballBrickBeep = new Audio();
     // ballBrickBeep.src = 'resources/bleep.mp3';
 
-    gameLevel = 0;
+    gameLevel = 2;
     reset();
   };
 
@@ -312,9 +311,9 @@ var breakout = (function() {
     this.width = 100;
     this.height = 20;
     this.x = canvas.scaledWidth / 2 - this.width / 2;
-    this.y = canvas.scaledHeight - this.height;
+    this.y = canvas.scaledHeight - this.height - 25;
     this.velocityX = 400;
-    this.fillColor = 'red';
+    this.fillColor = '#ffffff';
   };
 
   Paddle.prototype.update = function(dt) {
@@ -342,7 +341,7 @@ var breakout = (function() {
     var plusOrMinus = Math.random() < 0.5 ? -1 : 1;
     this.velocityX = plusOrMinus * (2 + Math.random() * 8);
     this.velocityY = 200;
-    this.fillColor = 'green';
+    this.fillColor = '#ffffff';
 
     Object.defineProperty(this, 'boundingBox', {
       get: function() {
@@ -408,24 +407,56 @@ var breakout = (function() {
     // TODO: Define colors as properties on here.
     // TODO: Use the Rectangle tool to create a 38x18px rectangle and apply the next gradient: #CC0000, #8E0000, #FF5656.
     this.levelData = [{
-      brickWidth: 50,
-      brickHeight: 20,
-      brickPadding: 10,
-      data: [
-        [1, 1, 1, 1, 1, 1, 1, 1],
-        [2, 2, 2, 2, 2, 2, 2, 2],
-        [3, 3, 3, 3, 3, 3, 3, 3]
-      ]
-    }, {
-      brickWidth: 50,
-      brickHeight: 20,
-      brickPadding: 10,
-      data: [
-        [1, 1, 1, 1, 1, 1],
-        [2, 2, 0, 0, 2, 2],
-        [3, 3, 0, 0, 3, 3]
-      ]
-    }];
+        brickWidth: 50,
+        brickHeight: 20,
+        brickPadding: 10,
+        data: [
+          [1, 1, 1, 1, 1, 1, 1, 1],
+          [2, 2, 2, 2, 2, 2, 2, 2],
+          [3, 3, 3, 3, 3, 3, 3, 3]
+        ]
+      }, {
+        brickWidth: 50,
+        brickHeight: 20,
+        brickPadding: 10,
+        data: [
+          [1, 1, 1, 1, 1, 1],
+          [2, 2, 0, 0, 2, 2],
+          [3, 3, 0, 0, 3, 3]
+        ]
+      }, {
+        brickWidth: 30,
+        brickHeight: 10,
+        brickPadding: 5,
+        // 6 Colours
+        // 1: green
+        // 2: yellow
+        // 3: orange
+        // 4: red
+        // 5: purple
+        // 6: blue
+        data: [
+          [0, 0, 0, 0, 0, 1, 0, 0, 0],
+          [0, 0, 0, 0, 1, 1, 0, 0, 0],
+          [0, 0, 0, 0, 1, 1, 0, 0, 0],
+          [0, 0, 0, 0, 1, 0, 0, 0, 0],
+          [0, 0, 1, 1, 0, 1, 1, 0, 0],
+          [0, 1, 1, 1, 1, 1, 1, 1, 0],
+          [1, 1, 1, 1, 1, 1, 1, 1, 1],
+          [2, 2, 2, 2, 2, 2, 2, 2, 0],
+          [2, 2, 2, 2, 2, 2, 2, 0, 0],
+          [3, 3, 3, 3, 3, 3, 3, 0, 0],
+          [3, 3, 3, 3, 3, 3, 3, 0, 0],
+          [4, 4, 4, 4, 4, 4, 4, 4, 0],
+          [4, 4, 4, 4, 4, 4, 4, 4, 4],
+          [5, 5, 5, 5, 5, 5, 5, 5, 5],
+          [0, 5, 5, 5, 5, 5, 5, 5, 0],
+          [0, 6, 6, 6, 6, 6, 6, 6, 0],
+          [0, 0, 6, 6, 0, 6, 6, 0, 0]
+        ]
+      }
+
+    ];
   };
 
   Levels.prototype.setupLevel = function(level) {
@@ -445,13 +476,22 @@ var breakout = (function() {
           var brickColor;
           switch (this.levelData[level].data[row][col]) {
             case 1:
-              brickColor = 'red';
+              brickColor = '#7ECD63';
               break;
             case 2:
-              brickColor = 'green';
+              brickColor = '#FCCC34';
               break;
             case 3:
-              brickColor = 'blue';
+              brickColor = '#F8A02E';
+              break;
+            case 4:
+              brickColor = '#E95959';
+              break;
+            case 5:
+              brickColor = '#AF58AF';
+              break;
+            case 6:
+              brickColor = '#05B4E7';
               break;
             default:
               brickColor = '#000000';
