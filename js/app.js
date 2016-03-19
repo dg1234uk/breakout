@@ -5,13 +5,12 @@
 // TODO: Add start ball on paddle with a click or button press, selected via options
 // TODO: Once level complete progress to next level until all levels complete.
 // TODO: Complete JSDoc comments
-// FIXME: If paddle velocity is 400 you can't move paddle to very edge of canvas.
 
 /**
  * breakout - IIFE
  */
 var breakout = (function() {
-  var canvas, ctx, rAF, paddle, ball, bricks, leftArrowKeyPressed, rightArrowKeyPressed, gameLevel, gameState, gameScore, gameLives, gameScoreElement, gameLivesElement, gameOverLayer, gameWinLayer, lastFrameTime, fps, gameFPSText, timeSinceLastUpdate, accumulator, timeStep, started, gamePauseLayer;
+  var canvas, ctx, rAF, paddle, ball, bricks, leftArrowKeyPressed, rightArrowKeyPressed, gameLevel, gameState, gameScore, gameLives, gameScoreElement, gameLivesElement, gameOverLayer, gameWinLayer, fps, gameFPSText, accumulator, timeSinceLastUpdate, lastFrameTime, timeStep, started, gamePauseLayer;
 
   /**
    * init - Initialize the game, including references to DOM elements, setting up event handlers,
@@ -155,6 +154,7 @@ var breakout = (function() {
       lastFrameTime = currentTime;
     }
 
+    // console.log('main lastFrameTime: ' + lastFrameTime);
     timeSinceLastUpdate = currentTime - lastFrameTime;
     lastFrameTime = currentTime;
     accumulator += timeSinceLastUpdate;
@@ -165,7 +165,7 @@ var breakout = (function() {
     var numUpdateSteps = 0;
     while (accumulator >= timeStep) {
       displayFPS(timeSinceLastUpdate / 1000);
-      update(timeStep / 1000);
+      update(timeStep/ 1000);
       accumulator -= timeStep;
       if (++numUpdateSteps >= 240) {
         panic();
