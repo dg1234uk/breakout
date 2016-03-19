@@ -5,10 +5,20 @@
 // TODO: Add options, ball start on paddle, speed, FPS, and other dev options
 // TODO: Improve Ball collision, so that if it hits a side of a rectangle it doesnt bounce up.
 // TODO: Add start ball on paddle with a click or button press, selected via options
+// TODO: Once level complete progress to next level until all levels complete.
+// TODO: Add MDNs game template stuff.
+// TODO: Complete JSDoc comments
 
+/**
+ * breakout - IIFE
+ */
 var breakout = (function() {
-  var canvas, ctx, rAF, paddle, ball, bricks, leftArrowKeyPressed, rightArrowKeyPressed, gameLevel, gameState, gameScore, gameLives, gameScoreElement, gameLivesElement, gameOverLayer, gameWinLayer, ballPaddleBeep, ballBrickBeep, lastFrameTime, fps, gameFPSText, timeSinceLastUpdate, accumulator, timeStep, started;
-  // TODO: Add MDNs game template stuff
+  var canvas, ctx, rAF, paddle, ball, bricks, leftArrowKeyPressed, rightArrowKeyPressed, gameLevel, gameState, gameScore, gameLives, gameScoreElement, gameLivesElement, gameOverLayer, gameWinLayer, lastFrameTime, fps, gameFPSText, timeSinceLastUpdate, accumulator, timeStep, started, gamePauseLayer;
+
+  /**
+   * init - Initialize the game, including references to DOM elements, setting up event handlers,
+   * setting game constants and variables. Finally calls Reset()
+   */
   var init = function() {
     // Get references to HTML Elements
     gameScoreElement = document.getElementById('gameScoreText');
@@ -16,6 +26,7 @@ var breakout = (function() {
     gameOverLayer = document.getElementById('gameOverLayer');
     gameWinLayer = document.getElementById('gameWinLayer');
     gameFPSText = document.getElementById('gameFpsText');
+    gamePauseLayer = document.getElementById('gamePauseLayer');
 
     // Set up Canvas
     canvas = document.getElementById('gameCanvas');
@@ -29,31 +40,38 @@ var breakout = (function() {
     gameState = 'init';
     started = false;
 
+    // GAME EVENT LISTENERS
     // Don't run the game when the tab isn't visible
-    window.addEventListener('focus', start);
+    // window.addEventListener('focus', start);
     window.addEventListener('blur', stop);
 
+    // Set up the start, pause and reset button event listeners
     document.getElementById('pauseBtn').addEventListener('click', stop);
     document.getElementById('startBtn').addEventListener('click', start);
     document.getElementById('resetBtn').addEventListener('click', reset);
 
-    // Setup input
+    // Setup input event Listeners
     leftArrowKeyPressed = false;
     rightArrowKeyPressed = false;
     document.addEventListener('keydown', keydownHandler);
     document.addEventListener('keyup', keyupHandler);
 
     // Load Audio
-    // FIXME: Audio Lag
-    ballPaddleBeep = new Audio();
+    //ballPaddleBeep = new Audio();
     // ballPaddleBeep.src = 'resources/bleep.wav';
-    ballBrickBeep = new Audio();
+    //ballBrickBeep = new Audio();
     // ballBrickBeep.src = 'resources/bleep.mp3';
 
     gameLevel = 0;
     reset();
   };
 
+  // EVENT HANDLERS
+  /**
+   * keydownHandler - Detects if left or right arrow key is pressed and sets
+   * the appropiate boolean
+   * @param  {event} e The Event object passed
+   */
   var keydownHandler = function(e) {
     // keyCode 37 = Left Arrow Key
     // keyCode 39 = Right Arrow Key
@@ -64,6 +82,11 @@ var breakout = (function() {
     }
   };
 
+  /**
+   * keyupHandler - Detects if left or right arrow key is released and sets
+   * the appropiate boolean
+   * @param  {event} e The Event object passed
+   */
   var keyupHandler = function(e) {
     // keyCode 37 = Left Arrow Key
     // keyCode 39 = Right Arrow Key
@@ -74,17 +97,18 @@ var breakout = (function() {
     }
   };
 
-
   // Pause and unpause
-  var stop = function () {
+  var stop = function() {
     gameState = 'paused';
     started = false;
     cancelAnimationFrame(rAF);
+    gamePauseLayer.style.display = 'block';
   };
 
-  var start = function () {
+  var start = function() {
     if (!started) { // don't request multiple frames
       started = true;
+      gamePauseLayer.style.display = 'none';
       // Dummy frame to get our timestamps and initial drawing right.
       // Track the frame ID so we can cancel it if we stop quickly.
       rAF = requestAnimationFrame(function(timestamp) {
@@ -98,7 +122,7 @@ var breakout = (function() {
     }
   };
 
-  var reset = function () {
+  var reset = function() {
     stop();
     // Set up the level
     bricks = [];
@@ -117,16 +141,13 @@ var breakout = (function() {
     canvas.style.display = 'block';
 
     start();
-
   };
 
+  // GAME LOGIC
   var main = function(currentTime) {
     // Allows us to throttle the games performance
     // var maxFPS = 30;
-    // if (currentTime < lastFrameTime + (1000 / maxFPS)) {
-    //     requestAnimationFrame(main);
-    //     return;
-    // }
+    // if (throttleFPS(maxFPS, currentTime)) {return;}
 
     rAF = requestAnimationFrame(main);
     if (!lastFrameTime) {
@@ -138,7 +159,8 @@ var breakout = (function() {
     accumulator += timeSinceLastUpdate;
 
     // Keep the update fixed to 1/60 sec to ensure there aren't collision issues etc
-    // Count steps to stop panic state, can also controlm FPS to stop panic states
+    // Count steps to stop panic state, could also control FPS to stop panic states
+    // TODO: Better document it
     var numUpdateSteps = 0;
     while (accumulator >= timeStep) {
       displayFPS(timeSinceLastUpdate / 1000);
@@ -149,7 +171,6 @@ var breakout = (function() {
         break;
       }
     }
-
     render();
   };
 
@@ -163,6 +184,20 @@ var breakout = (function() {
     }
     fps = 1 / dt;
     gameFPSText.textContent = Math.round(fps);
+  };
+
+  /**
+   * throttleFPS - Runs the update loop no quicker than maxFPS.
+   * @param  {number} maxFPS      The maximum FPS you wish the app to run at.
+   * @param  {DOMHighResTimeStamp} currentTime the currentTime in ms.
+   * @return {boolean}             true if update loop should return prior.
+   */
+  var throttleFPS = function(maxFPS, currentTime) {
+    if (currentTime < lastFrameTime + (1000 / maxFPS)) {
+        requestAnimationFrame(main);
+        return true;
+    }
+    return false;
   };
 
   var update = function(dt) {
@@ -186,24 +221,15 @@ var breakout = (function() {
     }
   };
 
-  var checkForBallBrickCollision = function() {
+  var render = function() {
+    ctx.clearRect(0, 0, canvas.scaledWidth, canvas.scaledHeight);
+    paddle.draw();
+    ball.draw();
     for (var i = 0; i < bricks.length; i++) {
-      var collision = AABBIntersection(ball.boundingBox, bricks[i]);
-      if (collision) {
-        // ballBrickBeep.play();
-        bricks.splice(i, 1);
-        gameScore += 25;
-        ball.velocityY *= -1;
-      }
+      bricks[i].draw();
     }
-  };
-
-  var checkForBallPaddleCollision = function() {
-    if (AABBIntersection(ball.boundingBox, paddle)) {
-      // Always return a +ve value to hack fix the 'sticky paddle' bug.
-      // ballPaddleBeep.play();
-      ball.velocityY = -1 * Math.abs(ball.velocityY);
-    }
+    gameScoreElement.textContent = gameScore;
+    gameLivesElement.textContent = gameLives;
   };
 
   var checkForWinLose = function() {
@@ -225,17 +251,37 @@ var breakout = (function() {
     }
   };
 
-  var render = function() {
-    ctx.clearRect(0, 0, canvas.scaledWidth, canvas.scaledHeight);
-    paddle.draw();
-    ball.draw();
+  // Collision Detection
+  var checkForBallBrickCollision = function() {
     for (var i = 0; i < bricks.length; i++) {
-      bricks[i].draw();
+      var collision = AABBIntersection(ball.boundingBox, bricks[i]);
+      if (collision) {
+        // ballBrickBeep.play();
+        bricks.splice(i, 1);
+        gameScore += 25;
+        ball.velocityY *= -1;
+      }
     }
-    gameScoreElement.textContent = gameScore;
-    gameLivesElement.textContent = gameLives;
   };
 
+  var checkForBallPaddleCollision = function() {
+    if (AABBIntersection(ball.boundingBox, paddle)) {
+      // Always return a +ve value to hack fix the 'sticky paddle' bug.
+      // ballPaddleBeep.play();
+      ball.velocityY = -1 * Math.abs(ball.velocityY);
+    }
+  };
+
+  var AABBIntersection = function(rect1, rect2) {
+    // TODO: Check arguments are correct.
+    if (rect1.x < rect2.x + rect2.width && rect1.x + rect1.width > rect2.x && rect1.y < rect2.y + rect2.height && rect1.height + rect1.y > rect2.y) {
+      return true;
+    }
+    return false;
+  };
+
+
+  // GAME ENTITIES
   var Paddle = function() {
     this.width = 100;
     this.height = 20;
@@ -390,14 +436,6 @@ var breakout = (function() {
         }
       }
     }
-  };
-
-  var AABBIntersection = function(rect1, rect2) {
-    // TODO: Check arguments are correct.
-    if (rect1.x < rect2.x + rect2.width && rect1.x + rect1.width > rect2.x && rect1.y < rect2.y + rect2.height && rect1.height + rect1.y > rect2.y) {
-      return true;
-    }
-    return false;
   };
 
   return {
