@@ -8,10 +8,15 @@
 </head>
 
 <body>
+
+
   <div id="game-container">
     <div id="gameHUD">
       <div id="gameScore" class="">
         <span>Score: </span><span id="gameScoreText">0</span>
+      </div>
+      <div id="gameLevel" class="">
+        <span>Level: </span><span id="gameLevelText">1</span>
       </div>
       <div id="gameLives" class="">
         <span>Lives: </span><span id="gameLivesText">3</span>
@@ -42,6 +47,10 @@
   <div style="text-align: center;">
     <span><a href="#" id="startBtn">Start</a></span> <span><a href="#" id="pauseBtn">Pause</a></span> <span><a href="#" id="resetBtn">Reset</a></span>
   </div>
+  <div style="text-align: center;">
+    <span><a href="#" id="prevLevelBtn">Previous Level</a></span> <span><a href="#" id="nextLevelBtn">Next Level</a></span>
+  </div>
+
   <script src="js/helper.js"></script>
   <!-- <script src="js/InputHandlers.js"></script> -->
   <script src="js/app.js"></script>

@@ -11,6 +11,9 @@
  */
 var breakout = (function() {
   var game = {
+    options: {
+      timeStep: 1000 / 60, // constant dt step of 1 frame every 60 seconds
+    },
     init: function() {
       // Get references to HTML Elements
       game.gameScoreElement = document.getElementById('gameScoreText');
@@ -19,6 +22,7 @@ var breakout = (function() {
       game.gameWinLayer = document.getElementById('gameWinLayer');
       game.gameFPSText = document.getElementById('gameFpsText');
       game.gamePauseLayer = document.getElementById('gamePauseLayer');
+      game.gameLevelText = document.getElementById('gameLevelText');
 
       // Set up Canvas
       game.canvas = document.getElementById('gameCanvas');
@@ -26,7 +30,7 @@ var breakout = (function() {
       scaleCanvasForHiDPI(game.ctx);
 
       // Setup time based animation
-      game.timeStep = 1000 / 60; // constant dt step of 1 frame every 60 seconds
+      game.timeStep = game.options.timeStep;
       game.accumulator = 0;
 
       game.gameState = 'init';
@@ -34,13 +38,14 @@ var breakout = (function() {
 
       // GAME EVENT LISTENERS
       // Don't run the game when the tab isn't visible
-      // window.addEventListener('focus', start);
       window.addEventListener('blur', game.stop);
 
-      // Set up the start, pause and reset button event listeners
+      // Set up the start, pause, reset and level button event listeners
       document.getElementById('pauseBtn').addEventListener('click', game.stop);
       document.getElementById('startBtn').addEventListener('click', game.start);
       document.getElementById('resetBtn').addEventListener('click', game.reset);
+      document.getElementById('nextLevelBtn').addEventListener('click', game.nextLevel);
+      document.getElementById('prevLevelBtn').addEventListener('click', game.prevLevel);
 
       // Setup input event Listeners
       game.leftArrowKeyPressed = false;
@@ -118,6 +123,10 @@ var breakout = (function() {
 
     reset: function() {
       game.stop();
+      // Keep score if player has completed last level
+      if (game.gameState !== 'nextLevel') {
+        game.gameScore = 0;
+      }
       game.gameState = 'reset';
       // Set up the level
       game.bricks = [];
@@ -127,15 +136,34 @@ var breakout = (function() {
       game.paddle = new Paddle();
       game.ball = new Ball();
 
-      game.gameScore = 0;
       game.gameLives = 3;
       game.gameScoreElement.textContent = game.gameScore;
       game.gameLivesElement.textContent = game.gameLives;
+      game.gameLevelText.textContent = game.gameLevel + 1;
       game.gameWinLayer.style.display = 'none';
       game.gameOverLayer.style.display = 'none';
       game.canvas.style.display = 'block';
 
       game.start();
+    },
+
+    nextLevel: function() {
+
+      var levels = new Levels();
+      if (levels.levelData.length > game.gameLevel + 1) {
+        game.gameLevel++;
+        game.reset();
+      } else if (game.gameState === 'nextLevel' && levels.levelData.length <= game.gameLevel + 1) {
+        debugger;
+        game.gameState = 'won';
+      }
+    },
+
+    prevLevel: function() {
+      if (game.gameLevel - 1 >= 0) {
+        game.gameLevel--;
+        game.reset();
+      }
     },
 
     // GAME LOGIC
@@ -248,8 +276,9 @@ var breakout = (function() {
       }
       // Check for winning condiiton (no more bricks)
       if (game.bricks.length === 0) {
-        game.gameState = 'won';
+        game.gameState = 'nextLevel';
         game.playing = false;
+        game.nextLevel();
       }
     },
 
@@ -301,10 +330,6 @@ var breakout = (function() {
       return false;
     }
   };
-
-
-
-
 
   // GAME ENTITIES
   var Paddle = function() {
@@ -412,13 +437,24 @@ var breakout = (function() {
   };
 
   var Levels = function() {
-    // TODO: Define colors as properties on here.
     // TODO: Use the Rectangle tool to create a 38x18px rectangle and apply the next gradient: #CC0000, #8E0000, #FF5656.
+    this.colors = {
+      // Standard Colours
+      // 1: green
+      // 2: yellow
+      // 3: orange
+      // 4: red
+      // 5: purple
+      // 6: blue
+      apple: {1: '#7ECD63', 2: '#FCCC34', 3: '#F8A02E', 4: '#E95959', 5: '#AF58AF', 6: '#05B4E7'}
+    };
     this.levelData = [{
         brickWidth: 50,
         brickHeight: 20,
         brickPadding: 10,
+        brickColors: this.colors.apple,
         data: [
+          [0, 0, 0, 0, 0, 0, 0, 0],
           [1, 1, 1, 1, 1, 1, 1, 1],
           [2, 2, 2, 2, 2, 2, 2, 2],
           [3, 3, 3, 3, 3, 3, 3, 3]
@@ -427,7 +463,9 @@ var breakout = (function() {
         brickWidth: 50,
         brickHeight: 20,
         brickPadding: 10,
+        brickColors: this.colors.apple,
         data: [
+          [0, 0, 0, 0, 0, 0],
           [1, 1, 1, 1, 1, 1],
           [2, 2, 0, 0, 2, 2],
           [3, 3, 0, 0, 3, 3]
@@ -436,7 +474,9 @@ var breakout = (function() {
         brickWidth: 24,
         brickHeight: 12,
         brickPadding: 4,
+        brickColors: this.colors.apple,
         data: [
+          [0, 0, 0, 0, 0, 0, 0, 0, 0],
           [0, 0, 0, 0, 0, 1, 0, 0, 0],
           [0, 0, 0, 0, 1, 1, 0, 0, 0],
           [0, 0, 0, 0, 1, 1, 0, 0, 0],
@@ -464,7 +504,7 @@ var breakout = (function() {
     var rows = this.levelData[level].data.length;
     var columns = this.levelData[level].data[0].length;
     var startingX = (game.canvas.scaledWidth / 2) - (((columns * this.levelData[level].brickWidth) + this.levelData[level].brickPadding * (columns - 1)) / 2);
-    var startingY = 10;
+    var startingY = 0; // Distance from top of canvas now set by blank rows in level data.
     for (var row = 0; row < rows; row++) {
       for (var col = 0; col < columns; col++) {
         if (this.levelData[level].data[row][col] > 0) {
@@ -474,37 +514,7 @@ var breakout = (function() {
           var x = startingX + (width + padding) * col + 1;
           var y = startingY + (height + padding) * row;
 
-          var brickColor;
-          // 6 Colours
-          // 1: green
-          // 2: yellow
-          // 3: orange
-          // 4: red
-          // 5: purple
-          // 6: blue
-          switch (this.levelData[level].data[row][col]) {
-            case 1:
-              brickColor = '#7ECD63';
-              break;
-            case 2:
-              brickColor = '#FCCC34';
-              break;
-            case 3:
-              brickColor = '#F8A02E';
-              break;
-            case 4:
-              brickColor = '#E95959';
-              break;
-            case 5:
-              brickColor = '#AF58AF';
-              break;
-            case 6:
-              brickColor = '#05B4E7';
-              break;
-            default:
-              brickColor = '#000000';
-
-          }
+          var brickColor = this.levelData[level].brickColors[this.levelData[level].data[row][col]];
 
           var brick = new Brick(x, y, width, height, brickColor);
           game.bricks.push(brick);

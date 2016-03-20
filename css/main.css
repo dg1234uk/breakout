@@ -15,21 +15,29 @@
   background-color: #eee;
 }
 
-#gameScore, #gameLives {
-  display: inline-block;
+#gameHUD {
+  width: 95%;
+  margin: 0 auto;
 }
 
-#gameScore {
+#gameScore, #gameLives, #gameLevel {
+  display: inline-block;
+  width: 33.33333%;
+  float: left;
+}
+
+/*#gameScore {
   margin-left: 20px;
+}*/
+
+#gameLevel {
+  text-align: center;
 }
 
 #gameLives {
-  float: right;
-  margin-right: 20px;
-}
-
-#gameHUD {
-  background: #ddd;
+  /*float: right;
+  margin-right: 20px;*/
+  text-align: right;
 }
 
 #gameHUD:after {
@@ -49,8 +57,7 @@
 #gameWinLayer {
   display: none;
   font-size: 30px;
-
-  background-color: #eee;
+  color: #000;
 
   left: 50%;
   top: 50%;
@@ -60,6 +67,9 @@
 #gameOverLayer {
   display: none;
   font-size: 30px;
+  color: #000;
+
+
 
   left: 50%;
   top: 50%;
@@ -69,6 +79,7 @@
 #gamePauseLayer {
   display: none;
   font-size: 30px;
+  color: #fff;
 
   left: 50%;
   top: 50%;
