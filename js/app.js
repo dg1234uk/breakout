@@ -53,7 +53,7 @@ var breakout = (function() {
       document.addEventListener('keydown', game.keydownHandler);
       document.addEventListener('keyup', game.keyupHandler);
 
-      // Load Audio
+      // Set up and load Audio
       //ballPaddleBeep = new Audio();
       // ballPaddleBeep.src = 'resources/bleep.wav';
       //ballBrickBeep = new Audio();
@@ -287,10 +287,17 @@ var breakout = (function() {
       for (var i = 0; i < game.bricks.length; i++) {
         var collision = game.AABBIntersection(game.ball.boundingBox, game.bricks[i]);
         if (collision) {
+
+          // TODO: If top or bottom hit, reverse vy
+          game.ball.velocityY *= -1;
+
+          // TODO: If left or right hit, reverse vx
+          // game.ball.velocityX *= -1;
+
           // ballBrickBeep.play();
           game.bricks.splice(i, 1);
           game.gameScore += 25;
-          game.ball.velocityY *= -1;
+
         }
       }
     },
