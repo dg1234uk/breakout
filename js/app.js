@@ -11,7 +11,8 @@ var breakout = (function() {
   var game = {
     options: {
       timeStep: 1000 / 60, // constant dt step of 1 frame every 60 seconds
-      gameSpeed: 1,        // Play speed, 1 = normal, 2 = half speed
+      gameSpeed: 1, // Play speed, 1 = normal, 2 = half speed
+      muted: false,
     },
     init: function() {
       // Get references to HTML Elements
@@ -45,6 +46,7 @@ var breakout = (function() {
       document.getElementById('resetBtn').addEventListener('click', game.reset);
       document.getElementById('nextLevelBtn').addEventListener('click', game.nextLevel);
       document.getElementById('prevLevelBtn').addEventListener('click', game.prevLevel);
+      document.getElementById('muteCheckbox').addEventListener('change', game.mute);
 
       // Setup input event Listeners
       game.leftArrowKeyPressed = false;
@@ -52,11 +54,11 @@ var breakout = (function() {
       document.addEventListener('keydown', game.keydownHandler);
       document.addEventListener('keyup', game.keyupHandler);
 
-      // Set up and load Audio
-      //ballPaddleBeep = new Audio();
-      // ballPaddleBeep.src = 'resources/bleep.wav';
-      //ballBrickBeep = new Audio();
-      // ballBrickBeep.src = 'resources/bleep.mp3';
+      // Set up and load Audio (maybe add in Ball constructor)
+      game.ballPaddleBeep = new Audio();
+      game.ballPaddleBeep.src = 'resources/bleep.wav';
+      game.ballBrickBeep = new Audio();
+      game.ballBrickBeep.src = 'resources/bleep.mp3';
 
       game.gameLevel = 0;
       game.reset();
@@ -91,6 +93,10 @@ var breakout = (function() {
       } else if (e.keyCode === 39) {
         game.rightArrowKeyPressed = false;
       }
+    },
+
+    mute: function(e) {
+      game.options.muted = e.target.checked;
     },
 
     // Pause and unpause
@@ -296,7 +302,10 @@ var breakout = (function() {
             // must be left/right-hand
             game.ball.velocityX *= -1;
           }
-          // ballBrickBeep.play();
+          if (!game.options.muted) {
+            game.ballBrickBeep.currentTime = 0;
+            game.ballBrickBeep.play();
+          }
           game.bricks.splice(i, 1);
           game.gameScore += 25;
 
@@ -307,8 +316,12 @@ var breakout = (function() {
     checkForBallPaddleCollision: function() {
       if (game.AABBIntersection(game.ball.boundingBox, game.paddle)) {
         // Always return a +ve value to hack fix the 'sticky paddle' bug.
-        // ballPaddleBeep.play();
         game.ball.velocityY = -1 * Math.abs(game.ball.velocityY);
+
+        if (!game.options.muted) {
+          game.ballPaddleBeep.currentTime = 0;
+          game.ballPaddleBeep.play();
+        }
 
         var diff = 0;
         var paddleCenter = game.paddle.x + (game.paddle.width / 2);
