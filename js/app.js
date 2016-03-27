@@ -2,6 +2,8 @@
 // TODO: Add start ball on paddle with a click or button press, selected via options
 // TODO: Complete JSDoc comments
 // TODO: Add replay mode.
+// TODO: Add name level
+// TODO: Add UI
 
 /**
  * breakout - IIFE
@@ -214,10 +216,6 @@ var breakout = (function() {      // jshint ignore:line
     },
 
     displayFPS: function(dt) {
-      // if (!game.fps) {
-      //   game.fps = 0;
-      // }
-      // game.fps = 1 / dt;
       var fps = 1 / dt;
       game.gameFPSText.textContent = Math.round(fps);
     },
@@ -237,7 +235,6 @@ var breakout = (function() {      // jshint ignore:line
     },
 
     update: function(dt) {
-      //TODO: Switch instead of if?
       if (game.gameState === 'play') {
         game.paddle.update(dt);
         game.ball.update(dt);
@@ -273,7 +270,6 @@ var breakout = (function() {      // jshint ignore:line
       if (game.ball.y - game.ball.radius > game.canvas.scaledHeight) {
         if (game.gameLives > 1) {
           game.gameLives--;
-          // TODO: turn game into a ballReset method on Ball
           game.ball.x = game.canvas.scaledWidth / 2;
           game.ball.y = game.canvas.scaledHeight - 200;
           var plusOrMinus = Math.random() < 0.5 ? -1 : 1;
@@ -296,10 +292,8 @@ var breakout = (function() {      // jshint ignore:line
     // Collision Detection
     checkForBallBrickCollision: function() {
       for (var i = 0; i < game.bricks.length; i++) {
-
         var collision = game.AABBIntersection(game.ball.boundingBox, game.bricks[i]);
         if (collision) {
-
           // Check which side of the brick has been hit
           if (game.ball.x > game.bricks[i].x && game.ball.x < game.bricks[i].x + game.bricks[i].width) {
             // must be top/bottom
@@ -556,6 +550,33 @@ var breakout = (function() {      // jshint ignore:line
           [0, 0, 5, 5, 5, 0, 0, 5, 5, 5, 0, 0],
           [0, 3, 3, 3, 0, 0, 0, 0, 3, 3, 3, 0],
           [3, 3, 3, 3, 0, 0, 0, 0, 3, 3, 3, 3]
+        ]
+      },
+      {
+        brickWidth: 20,
+        brickHeight: 20,
+        brickPadding: 0,
+        brickColors: this.colors.apple,
+        data: [
+          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 2, 2, 2, 0, 0, 3, 0, 0, 0, 3, 0, 4, 4, 4, 0, 5, 5, 5, 5, 5, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0, 0, 0, 2, 0, 3, 0, 0, 0, 3, 0, 0, 4, 0, 0, 5, 0, 0, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0, 0, 0, 2, 0, 3, 3, 0, 0, 3, 0, 0, 4, 0, 0, 5, 0, 0, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 2, 2, 2, 2, 0, 3, 0, 3, 0, 3, 0, 0, 4, 0, 0, 5, 5, 5, 5, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0, 0, 0, 2, 0, 3, 0, 0, 3, 3, 0, 0, 4, 0, 0, 5, 0, 0, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0, 0, 0, 2, 0, 3, 0, 0, 0, 3, 0, 0, 4, 0, 0, 5, 0, 0, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 2, 0, 0, 0, 2, 0, 3, 0, 0, 0, 3, 0, 4, 4, 4, 0, 5, 5, 5, 5, 5, 0, 6, 6, 6, 6, 6, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          [0, 6, 6, 6, 0, 0, 5, 5, 5, 5, 0, 0, 0, 4, 4, 4, 0, 0, 3, 0, 0, 0, 3, 0, 0, 2, 2, 2, 0, 0, 1, 1, 1, 1, 1, 0, 6, 6, 6, 6, 0],
+          [6, 0, 0, 0, 6, 0, 5, 0, 0, 0, 5, 0, 4, 0, 0, 0, 4, 0, 3, 0, 0, 0, 3, 0, 2, 0, 0, 0, 2, 0, 1, 0, 0, 0, 0, 0, 6, 0, 0, 0, 6],
+          [6, 0, 0, 0, 0, 0, 5, 0, 0, 0, 5, 0, 4, 0, 0, 0, 4, 0, 3, 3, 0, 0, 3, 0, 2, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 6, 0, 0, 0, 6],
+          [6, 0, 0, 0, 0, 0, 5, 5, 5, 5, 0, 0, 4, 4, 4, 4, 4, 0, 3, 0, 3, 0, 3, 0, 2, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 6, 6, 6, 6, 0],
+          [6, 0, 0, 6, 6, 0, 5, 0, 5, 0, 0, 0, 4, 0, 0, 0, 4, 0, 3, 0, 0, 3, 3, 0, 2, 0, 0, 2, 2, 0, 1, 0, 0, 0, 0, 0, 6, 0, 6, 0, 0],
+          [6, 0, 0, 0, 6, 0, 5, 0, 0, 5, 0, 0, 4, 0, 0, 0, 4, 0, 3, 0, 0, 0, 3, 0, 2, 0, 0, 0, 2, 0, 1, 0, 0, 0, 0, 0, 6, 0, 0, 6, 0],
+          [0, 6, 6, 6, 0, 0, 5, 0, 0, 0, 5, 0, 4, 0, 0, 0, 4, 0, 3, 0, 0, 0, 3, 0, 0, 2, 2, 2, 0, 0, 1, 1, 1, 1, 1, 0, 6, 0, 0, 0, 6]
+
         ]
       }
     ];
