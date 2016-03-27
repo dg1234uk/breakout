@@ -1,7 +1,6 @@
 /*global scaleCanvasForHiDPI*/
 // TODO: Add audio
 // TODO: Add options, ball start on paddle, speed, FPS, and other dev options
-// TODO: Improve Ball collision, so that if it hits a side of a rectangle it doesnt bounce up.
 // TODO: Add start ball on paddle with a click or button press, selected via options
 // TODO: Complete JSDoc comments
 
@@ -12,6 +11,7 @@ var breakout = (function() {
   var game = {
     options: {
       timeStep: 1000 / 60, // constant dt step of 1 frame every 60 seconds
+      gameSpeed: 1,        // Play speed, 1 = normal, 2 = half speed
     },
     init: function() {
       // Get references to HTML Elements
@@ -187,7 +187,7 @@ var breakout = (function() {
       var numUpdateSteps = 0;
       while (game.accumulator >= game.timeStep) {
         game.displayFPS(game.timeSinceLastUpdate / 1000);
-        game.update(game.timeStep / 1000);
+        game.update((game.timeStep / 1000) / game.options.gameSpeed);
         game.accumulator -= game.timeStep;
         if (++numUpdateSteps >= 240) {
           game.panic();
