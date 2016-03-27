@@ -3,7 +3,6 @@
 // TODO: Add options, ball start on paddle, speed, FPS, and other dev options
 // TODO: Improve Ball collision, so that if it hits a side of a rectangle it doesnt bounce up.
 // TODO: Add start ball on paddle with a click or button press, selected via options
-// TODO: Once level complete progress to next level until all levels complete.
 // TODO: Complete JSDoc comments
 
 /**
@@ -285,15 +284,18 @@ var breakout = (function() {
     // Collision Detection
     checkForBallBrickCollision: function() {
       for (var i = 0; i < game.bricks.length; i++) {
+
         var collision = game.AABBIntersection(game.ball.boundingBox, game.bricks[i]);
         if (collision) {
 
-          // TODO: If top or bottom hit, reverse vy
-          game.ball.velocityY *= -1;
-
-          // TODO: If left or right hit, reverse vx
-          // game.ball.velocityX *= -1;
-
+          // Check which side of the brick has been hit
+          if (game.ball.x > game.bricks[i].x && game.ball.x < game.bricks[i].x + game.bricks[i].width) {
+            // must be top/bottom
+            game.ball.velocityY *= -1;
+          } else {
+            // must be left/right-hand
+            game.ball.velocityX *= -1;
+          }
           // ballBrickBeep.play();
           game.bricks.splice(i, 1);
           game.gameScore += 25;
@@ -453,7 +455,14 @@ var breakout = (function() {
       // 4: red
       // 5: purple
       // 6: blue
-      apple: {1: '#7ECD63', 2: '#FCCC34', 3: '#F8A02E', 4: '#E95959', 5: '#AF58AF', 6: '#05B4E7'}
+      apple: {
+        1: '#7ECD63',
+        2: '#FCCC34',
+        3: '#F8A02E',
+        4: '#E95959',
+        5: '#AF58AF',
+        6: '#05B4E7'
+      }
     };
     this.levelData = [{
         brickWidth: 50,

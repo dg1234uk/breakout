@@ -50,6 +50,8 @@
 
 #gameCanvas {
   background-color: #0059BC;
+  /*background-image: linear-gradient(white 1px, transparent 0), linear-gradient(90deg, white 1px, transparent 0);*/
+  background-size: 20px 20px;
   margin: 0 auto;
   top: 18px;
 }
