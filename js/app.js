@@ -1,12 +1,12 @@
 /*global scaleCanvasForHiDPI*/
-// TODO: Add options, ball start on paddle, speed, FPS, and other dev options
 // TODO: Add start ball on paddle with a click or button press, selected via options
 // TODO: Complete JSDoc comments
+// TODO: Add replay mode.
 
 /**
  * breakout - IIFE
  */
-var breakout = (function() {
+var breakout = (function() {      // jshint ignore:line
   var game = {
     options: {
       timeStep: 1000 / 60, // constant dt step of 1 frame every 60 seconds
@@ -22,6 +22,7 @@ var breakout = (function() {
       game.gameFPSText = document.getElementById('gameFpsText');
       game.gamePauseLayer = document.getElementById('gamePauseLayer');
       game.gameLevelText = document.getElementById('gameLevelText');
+      game.gameSpeedRangeValueText = document.getElementById('gameSpeedRangeValueText');
 
       // Set up Canvas
       game.canvas = document.getElementById('gameCanvas');
@@ -46,6 +47,7 @@ var breakout = (function() {
       document.getElementById('nextLevelBtn').addEventListener('click', game.nextLevel);
       document.getElementById('prevLevelBtn').addEventListener('click', game.prevLevel);
       document.getElementById('muteCheckbox').addEventListener('change', game.mute);
+      document.getElementById('gameSpeedRange').addEventListener('change', game.speedChange);
 
       // Setup input event Listeners
       game.leftArrowKeyPressed = false;
@@ -96,6 +98,11 @@ var breakout = (function() {
 
     mute: function(e) {
       game.options.muted = e.target.checked;
+    },
+
+    speedChange: function(e) {
+      game.options.gameSpeed = e.target.value;
+      game.gameSpeedRangeValueText.textContent = game.options.gameSpeed;
     },
 
     // Pause and unpause
@@ -460,20 +467,13 @@ var breakout = (function() {
   var Levels = function() {
     // TODO: Use the Rectangle tool to create a 38x18px rectangle and apply the next gradient: #CC0000, #8E0000, #FF5656.
     this.colors = {
-      // Standard Colours
-      // 1: green
-      // 2: yellow
-      // 3: orange
-      // 4: red
-      // 5: purple
-      // 6: blue
       apple: {
-        1: '#7ECD63',
-        2: '#FCCC34',
-        3: '#F8A02E',
-        4: '#E95959',
-        5: '#AF58AF',
-        6: '#05B4E7'
+        1: '#7ECD63',   // Green
+        2: '#FCCC34',   // Yellow
+        3: '#F8A02E',   // Orange
+        4: '#E95959',   // Red
+        5: '#AF58AF',   // Purple
+        6: '#05B4E7'    // Blue
       },
       mario: {
         1: '#EB212E',   // Red - Hat and shirt (Lugi green #2CB051)
@@ -558,7 +558,6 @@ var breakout = (function() {
           [3, 3, 3, 3, 0, 0, 0, 0, 3, 3, 3, 3]
         ]
       }
-
     ];
   };
 
@@ -585,9 +584,11 @@ var breakout = (function() {
     }
   };
 
-  return {
-    init: game.init
-  };
+  // return {
+  //   init: game.init
+  // };
+  game.init();
+
 })();
 
-breakout.init();
+// breakout.init();
