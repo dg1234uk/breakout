@@ -1,5 +1,4 @@
 /*global scaleCanvasForHiDPI*/
-// TODO: Add audio
 // TODO: Add options, ball start on paddle, speed, FPS, and other dev options
 // TODO: Add start ball on paddle with a click or button press, selected via options
 // TODO: Complete JSDoc comments
@@ -12,7 +11,7 @@ var breakout = (function() {
     options: {
       timeStep: 1000 / 60, // constant dt step of 1 frame every 60 seconds
       gameSpeed: 1, // Play speed, 1 = normal, 2 = half speed
-      muted: false,
+      muted: true,
     },
     init: function() {
       // Get references to HTML Elements
@@ -475,6 +474,14 @@ var breakout = (function() {
         4: '#E95959',
         5: '#AF58AF',
         6: '#05B4E7'
+      },
+      mario: {
+        1: '#EB212E',   // Red - Hat and shirt (Lugi green #2CB051)
+        2: '#FFC231',   // Orange - Skin
+        3: '#462304',   // Brown - Hair and shoes
+        4: '#0A0A0A',   // Black - Eyes, Mouth, Mustache
+        5: '#0B24FC',   // Blue - Dungerees
+        6: '#FFF135'    // Yellow - Dungeree buttons
       }
     };
     this.levelData = [{
@@ -523,6 +530,32 @@ var breakout = (function() {
           [0, 5, 5, 5, 5, 5, 5, 5, 0],
           [0, 6, 6, 6, 6, 6, 6, 6, 0],
           [0, 0, 6, 6, 0, 6, 6, 0, 0]
+        ]
+      },
+      {
+        brickWidth: 20,
+        brickHeight: 20,
+        brickPadding: 0,
+        brickColors: this.colors.mario,
+        data: [
+          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0],
+          [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+          [0, 0, 3, 3, 3, 2, 2, 4, 2, 0, 0, 0],
+          [0, 3, 2, 3, 2, 2, 2, 4, 2, 2, 2, 0],
+          [0, 3, 2, 3, 3, 2, 2, 2, 4, 2, 2, 2],
+          [0, 0, 3, 2, 2, 2, 2, 4, 4, 4, 4, 0],
+          [0, 0, 0, 2, 2, 2, 2, 2, 2, 0, 0, 0],
+          [0, 0, 1, 1, 5, 1, 1, 5, 1, 1, 0, 0],
+          [0, 1, 1, 1, 5, 1, 1, 5, 1, 1, 1, 0],
+          [1, 1, 1, 1, 5, 5, 5, 5, 1, 1, 1, 1],
+          [2, 2, 1, 5, 6, 5, 5, 6, 5, 1, 2, 2],
+          [2, 2, 2, 5, 5, 5, 5, 5, 2, 2, 2, 2],
+          [2, 2, 5, 5, 5, 5, 5, 5, 5, 5, 2, 2],
+          [0, 0, 5, 5, 5, 0, 0, 5, 5, 5, 0, 0],
+          [0, 3, 3, 3, 0, 0, 0, 0, 3, 3, 3, 0],
+          [3, 3, 3, 3, 0, 0, 0, 0, 3, 3, 3, 3]
         ]
       }
 
